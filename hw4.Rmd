@@ -1,0 +1,96 @@
+---
+title: "hw4"
+author: "Sam Begley"
+date: "February 28, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(datasets)
+library(tidyverse)
+chicks <- ChickWeight
+```
+
+#1)
+
+```{r 1}
+weight0 <- chicks %>%
+  filter(Time == 0) %>%
+  group_by(Diet) %>%
+  summarise(Count = n_distinct(Chick), Avg = mean(weight), Stdv = sd(weight))
+print(weight0)
+```
+
+#2)
+
+
+```{r 2}
+complete <- chicks %>%
+  group_by(Chick) %>%
+  mutate(Obs = n_distinct(Time)) %>%
+  filter(Obs == 12)
+head(complete, 3)
+```
+
+#3)
+
+```{r 3}
+chicks <- chicks %>%
+  group_by(Chick) %>%
+  mutate(weightgain = weight - first(weight))
+head(chicks, 3)
+```
+
+#4)
+
+```{r 4}
+chicks$Diet <- factor(chicks$Diet, c('1', '2', '4', '3'))
+chicks %>%
+  filter(Time == 21) %>%
+  ggplot(aes(Diet, weightgain)) +
+  geom_boxplot(ymin = 0)
+```
+
+Diet 3 was best for weight gain, and diet 1 was the worst. Diet 4 was the second best diet for weight gain, but it was the most consistent out of all 4. 
+
+#5)
+
+```{r 5}
+chicks %>% filter(Time == 21) %>%
+  arrange(desc(weightgain)) %>%
+  head(5)
+```
+```{r}
+chicks %>% filter(Time == 21) %>%
+  arrange(weightgain) %>%
+  head(5)
+```
+```{r}
+chicks %>%
+  filter(Time == 21) %>%
+  mutate(chick_id = as.character(Chick)) %>%
+  arrange(desc(weightgain)) %>%
+  ggplot(aes(chick_id, weightgain, color = Diet)) +
+  geom_bar(stat = 'identity')
+```
+
+#6)
+
+```{r 6}
+top <- chicks %>%
+  filter(Time == 0) %>%
+  ungroup() %>%
+  top_n(1, weight)
+top <- as.integer(top[1, 'Chick'])
+bot <- chicks %>%
+  filter(Time == 0) %>%
+  ungroup() %>%
+  mutate(thgiew = 1 / weight) %>%
+  top_n(1, thgiew)
+bot <- as.integer(bot[1, 'Chick'])
+chicks %>%
+  filter(Chick == bot | Chick == top) %>%
+  ggplot(aes(Time, weight, color = Chick)) +
+  geom_point()
+```
